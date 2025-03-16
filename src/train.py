@@ -1,3 +1,4 @@
+import argparse
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -6,12 +7,19 @@ from dataset import FishDataset, transform
 from model import FishClassifier
 import os
 
-# Cấu hình
+# 📌 Thêm argparse để nhận tham số từ terminal
+parser = argparse.ArgumentParser(description="Train Fish Classifier")
+parser.add_argument("--epochs", type=int, default=20, help="Số epoch để train (default: 20)")
+parser.add_argument("--batch_size", type=int, default=32, help="Batch size (default: 32)")
+parser.add_argument("--lr", type=float, default=0.001, help="Learning rate (default: 0.001)")
+args = parser.parse_args()
+
+# Cấu hình từ argparse
 CSV_PATH = "data/labels.csv"
 IMG_DIR = "data/images/"
-EPOCHS = 20
-BATCH_SIZE = 32
-LEARNING_RATE = 0.001
+EPOCHS = args.epochs
+BATCH_SIZE = args.batch_size
+LEARNING_RATE = args.lr
 
 # Load dataset
 dataset = FishDataset(CSV_PATH, IMG_DIR, transform=transform)
