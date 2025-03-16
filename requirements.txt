@@ -6,3 +6,4 @@ numpy
 Pillow
 tqdm
 argparse
+sklearn

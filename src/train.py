@@ -15,7 +15,7 @@ parser.add_argument("--lr", type=float, default=0.001, help="Learning rate (defa
 args = parser.parse_args()
 
 # Cấu hình từ argparse
-CSV_PATH = "data/labels.csv"
+CSV_PATH = "data/train.csv"
 IMG_DIR = "data/images/"
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch_size
