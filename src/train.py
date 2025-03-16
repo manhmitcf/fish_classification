@@ -15,15 +15,19 @@ parser.add_argument("--lr", type=float, default=0.001, help="Learning rate (defa
 args = parser.parse_args()
 
 # Cấu hình từ argparse
-CSV_PATH = "data/train.csv"
+TRAIN_CSV_PATH = "data/train.csv"
+VAL_CSV_PATH = "data/val.csv"  # Thêm đường dẫn tới file validation CSV
 IMG_DIR = "data/images/"
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch_size
 LEARNING_RATE = args.lr
 
-# Load dataset
-dataset = FishDataset(CSV_PATH, IMG_DIR, transform=transform)
-dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+# Load datasets
+train_dataset = FishDataset(TRAIN_CSV_PATH, IMG_DIR, transform=transform)
+val_dataset = FishDataset(VAL_CSV_PATH, IMG_DIR, transform=transform)
+
+train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 # Load model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -35,10 +39,11 @@ optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 # Training loop
 for epoch in range(EPOCHS):
+    # Training phase
     model.train()
-    running_loss = 0.0
+    train_running_loss = 0.0
     
-    for images, labels in dataloader:
+    for images, labels in train_dataloader:
         images, labels = images.to(device), labels.to(device)
         
         optimizer.zero_grad()
@@ -47,9 +52,26 @@ for epoch in range(EPOCHS):
         loss.backward()
         optimizer.step()
         
-        running_loss += loss.item()
+        train_running_loss += loss.item()
     
-    print(f"Epoch [{epoch+1}/{EPOCHS}], Loss: {running_loss/len(dataloader):.4f}")
+    avg_train_loss = train_running_loss / len(train_dataloader)
+    
+    # Validation phase
+    model.eval()
+    val_running_loss = 0.0
+    
+    with torch.no_grad():  # Tắt tính gradient trong validation
+        for images, labels in val_dataloader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            val_running_loss += loss.item()
+    
+    avg_val_loss = val_running_loss / len(val_dataloader)
+    
+    print(f"Epoch [{epoch+1}/{EPOCHS}], "
+          f"Train Loss: {avg_train_loss:.4f}, "
+          f"Val Loss: {avg_val_loss:.4f}")
 
 # Lưu mô hình
 os.makedirs("models", exist_ok=True)
